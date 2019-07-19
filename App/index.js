@@ -159,9 +159,25 @@ class App extends React.Component {
   };
 
   handleCardPress = cardId => {
-    this.setState(({ selectedIndices }) => ({
-      selectedIndices: [...selectedIndices, cardId]
-    }));
+    this.setState(({ selectedIndices }) => {
+      if (selectedIndices.length > 1) {
+        return {};
+      }
+
+      if (selectedIndices.length === 1) {
+        this.resetCards();
+      }
+
+      return {
+        selectedIndices: [...selectedIndices, cardId]
+      };
+    });
+  };
+
+  resetCards = () => {
+    setTimeout(() => {
+      this.setState({ selectedIndices: [] });
+    }, 2000);
   };
 
   render() {
