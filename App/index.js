@@ -6,7 +6,8 @@ import {
   Image,
   StatusBar,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  Alert
 } from "react-native";
 
 const screen = Dimensions.get("window");
@@ -99,11 +100,11 @@ const AVAILABLE_CARDS = [
   require("./assets/playing-cards/king_of_spades.png")
 ];
 
-const Card = ({ onPress, selectedIndices, id, card }) => {
-  if (selectedIndices.includes(id)) {
+const Card = ({ onPress, selectedIndices, id, image, matchedPairs }) => {
+  if (selectedIndices.includes(id) || matchedPairs.includes(image)) {
     return (
       <TouchableOpacity onPress={onPress} style={styles.card}>
-        <Image source={card} style={styles.cardImage} resizeMode="contain" />
+        <Image source={image} style={styles.cardImage} resizeMode="contain" />
       </TouchableOpacity>
     );
   }
@@ -118,15 +119,39 @@ const Card = ({ onPress, selectedIndices, id, card }) => {
   );
 };
 
+const initialState = {
+  selectedIndices: [],
+  matchedPairs: [],
+  data: [],
+  currentSelection: null,
+  moveCount: 0
+};
+
 class App extends React.Component {
-  state = {
-    selectedIndices: [],
-    data: []
-  };
+  state = initialState;
 
   componentDidMount() {
     this.draw();
   }
+
+  componentDidUpdate() {
+    if (this.state.matchedPairs.length >= 6) {
+      this.gameComplete();
+    }
+  }
+
+  gameComplete = () => {
+    Alert.alert(
+      "Winner!",
+      `You completed the puzzle in ${this.state.moveCount} moves!`,
+      [
+        {
+          text: "Reset Game",
+          onPress: () => this.setState({ ...initialState }, () => this.draw())
+        }
+      ]
+    );
+  };
 
   draw = () => {
     const possibleCards = [...AVAILABLE_CARDS];
@@ -152,32 +177,45 @@ class App extends React.Component {
 
     const data = cardRow.map((row, i) => ({
       name: i,
-      columns: row
+      columns: row.map(image => ({ image }))
     }));
 
     this.setState({ data });
   };
 
-  handleCardPress = cardId => {
-    this.setState(({ selectedIndices }) => {
-      if (selectedIndices.length > 1) {
-        return {};
+  handleCardPress = (cardId, image) => {
+    let callRecursively = false;
+    this.setState(
+      ({ selectedIndices, currentSelection, matchedPairs, moveCount }) => {
+        let nextState = {};
+        if (selectedIndices.length > 1) {
+          callRecursively = true;
+          return { selectedIndices: [] };
+        }
+
+        nextState.moveCount = moveCount + 1;
+        if (selectedIndices.length === 1) {
+          if (image === currentSelection) {
+            nextState = {
+              ...nextState,
+              matchedPairs: [...matchedPairs, image],
+              currentSelection: null
+            };
+          }
+        } else {
+          nextState.currentSelection = image;
+        }
+
+        nextState.selectedIndices = [...selectedIndices, cardId];
+
+        return nextState;
+      },
+      () => {
+        if (callRecursively) {
+          this.handleCardPress(cardId, image);
+        }
       }
-
-      if (selectedIndices.length === 1) {
-        this.resetCards();
-      }
-
-      return {
-        selectedIndices: [...selectedIndices, cardId]
-      };
-    });
-  };
-
-  resetCards = () => {
-    setTimeout(() => {
-      this.setState({ selectedIndices: [] });
-    }, 2000);
+    );
   };
 
   render() {
@@ -188,15 +226,16 @@ class App extends React.Component {
           {this.state.data.map(row => (
             <View key={row.name} style={styles.row}>
               {row.columns.map((card, index) => {
-                const cardId = `${row.name}-${card}-${index}`;
+                const cardId = `${row.name}-${card.image}-${index}`;
 
                 return (
                   <Card
                     key={cardId}
                     id={cardId}
-                    onPress={() => this.handleCardPress(cardId)}
+                    onPress={() => this.handleCardPress(cardId, card.image)}
                     selectedIndices={this.state.selectedIndices}
-                    card={card}
+                    matchedPairs={this.state.matchedPairs}
+                    image={card.image}
                   />
                 );
               })}
