@@ -11,6 +11,8 @@ import {
   Animated
 } from "react-native";
 
+import { AVAILABLE_CARDS } from "./data/availableCards";
+
 const screen = Dimensions.get("window");
 const CARD_WIDTH = screen.width * 0.25;
 const CARD_HEIGHT = screen.height * 0.168;
@@ -43,65 +45,6 @@ const styles = StyleSheet.create({
     height: CARD_HEIGHT
   }
 });
-
-const AVAILABLE_CARDS = [
-  // clubs
-  require("./assets/playing-cards/2_of_clubs.png"),
-  require("./assets/playing-cards/3_of_clubs.png"),
-  require("./assets/playing-cards/4_of_clubs.png"),
-  require("./assets/playing-cards/5_of_clubs.png"),
-  require("./assets/playing-cards/6_of_clubs.png"),
-  require("./assets/playing-cards/7_of_clubs.png"),
-  require("./assets/playing-cards/8_of_clubs.png"),
-  require("./assets/playing-cards/9_of_clubs.png"),
-  require("./assets/playing-cards/10_of_clubs.png"),
-  require("./assets/playing-cards/ace_of_clubs.png"),
-  require("./assets/playing-cards/jack_of_clubs.png"),
-  require("./assets/playing-cards/queen_of_clubs.png"),
-  require("./assets/playing-cards/king_of_clubs.png"),
-  // diamonds
-  require("./assets/playing-cards/2_of_diamonds.png"),
-  require("./assets/playing-cards/3_of_diamonds.png"),
-  require("./assets/playing-cards/4_of_diamonds.png"),
-  require("./assets/playing-cards/5_of_diamonds.png"),
-  require("./assets/playing-cards/6_of_diamonds.png"),
-  require("./assets/playing-cards/7_of_diamonds.png"),
-  require("./assets/playing-cards/8_of_diamonds.png"),
-  require("./assets/playing-cards/9_of_diamonds.png"),
-  require("./assets/playing-cards/10_of_diamonds.png"),
-  require("./assets/playing-cards/ace_of_diamonds.png"),
-  require("./assets/playing-cards/jack_of_diamonds.png"),
-  require("./assets/playing-cards/queen_of_diamonds.png"),
-  require("./assets/playing-cards/king_of_diamonds.png"),
-  // hearts
-  require("./assets/playing-cards/2_of_hearts.png"),
-  require("./assets/playing-cards/3_of_hearts.png"),
-  require("./assets/playing-cards/4_of_hearts.png"),
-  require("./assets/playing-cards/5_of_hearts.png"),
-  require("./assets/playing-cards/6_of_hearts.png"),
-  require("./assets/playing-cards/7_of_hearts.png"),
-  require("./assets/playing-cards/8_of_hearts.png"),
-  require("./assets/playing-cards/9_of_hearts.png"),
-  require("./assets/playing-cards/10_of_hearts.png"),
-  require("./assets/playing-cards/ace_of_hearts.png"),
-  require("./assets/playing-cards/jack_of_hearts.png"),
-  require("./assets/playing-cards/queen_of_hearts.png"),
-  require("./assets/playing-cards/king_of_hearts.png"),
-  // spades
-  require("./assets/playing-cards/2_of_spades.png"),
-  require("./assets/playing-cards/3_of_spades.png"),
-  require("./assets/playing-cards/4_of_spades.png"),
-  require("./assets/playing-cards/5_of_spades.png"),
-  require("./assets/playing-cards/6_of_spades.png"),
-  require("./assets/playing-cards/7_of_spades.png"),
-  require("./assets/playing-cards/8_of_spades.png"),
-  require("./assets/playing-cards/9_of_spades.png"),
-  require("./assets/playing-cards/10_of_spades.png"),
-  require("./assets/playing-cards/ace_of_spades.png"),
-  require("./assets/playing-cards/jack_of_spades.png"),
-  require("./assets/playing-cards/queen_of_spades.png"),
-  require("./assets/playing-cards/king_of_spades.png")
-];
 
 const getCardOffset = index => {
   switch (index) {
@@ -263,25 +206,34 @@ class App extends React.Component {
   draw = () => {
     const possibleCards = [...AVAILABLE_CARDS];
     const selectedCards = [];
+    // we have twelve cards in play which is 6 pairs
     for (let i = 0; i < 6; i += 1) {
+      // grab a random card from our available cards
       const randomIndex = Math.floor(Math.random() * possibleCards.length);
       const card = possibleCards[randomIndex];
+
+      // Push the card to the stack twice
       selectedCards.push(card);
       selectedCards.push(card);
+
+      // remove the card from being able to be played again
       possibleCards.splice(randomIndex, 1);
     }
 
+    // randomly sort the cards
     selectedCards.sort(() => 0.5 - Math.random());
 
     const cardRow = [];
     const size = 3;
     let index = 0;
 
+    // break array of cards into rows
     while (index < selectedCards.length) {
       cardRow.push(selectedCards.slice(index, size + index));
       index += size;
     }
 
+    // break cards into colums
     const data = cardRow.map((row, i) => ({
       name: i,
       columns: row.map(image => ({ image }))
@@ -295,6 +247,8 @@ class App extends React.Component {
     this.setState(
       ({ selectedIndices, currentSelection, matchedPairs, moveCount }) => {
         let nextState = {};
+        // If the already have two cards face up, reset their existing cards and then set a
+        // flag to re-call this function with the new arguments.
         if (selectedIndices.length > 1) {
           callRecursively = true;
           return { selectedIndices: [] };
@@ -302,6 +256,8 @@ class App extends React.Component {
 
         nextState.moveCount = moveCount + 1;
         if (selectedIndices.length === 1) {
+          // if they already have a card face up and it matches their current card add it to
+          // the matched pairs so long as it's not the same card they already pressed.
           if (image === currentSelection && !selectedIndices.includes(cardId)) {
             nextState = {
               ...nextState,
@@ -319,6 +275,8 @@ class App extends React.Component {
       },
       () => {
         if (callRecursively) {
+          // If we want to immediately re-call this function with the arguments, such as
+          // when they select a new card and already have two in play.
           this.handleCardPress(cardId, image);
         }
       }
