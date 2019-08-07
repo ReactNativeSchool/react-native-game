@@ -195,7 +195,7 @@ class App extends React.Component {
 
         nextState.moveCount = moveCount + 1;
         if (selectedIndices.length === 1) {
-          if (image === currentSelection) {
+          if (image === currentSelection && !selectedIndices.includes(cardId)) {
             nextState = {
               ...nextState,
               matchedPairs: [...matchedPairs, image],
