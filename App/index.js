@@ -7,10 +7,13 @@ import {
   StatusBar,
   Dimensions,
   TouchableOpacity,
-  Alert
+  Alert,
+  Animated
 } from "react-native";
 
 const screen = Dimensions.get("window");
+const CARD_WIDTH = screen.width * 0.25;
+const CARD_HEIGHT = screen.height * 0.168;
 
 const styles = StyleSheet.create({
   container: {
@@ -36,8 +39,8 @@ const styles = StyleSheet.create({
     borderRadius: 3
   },
   cardImage: {
-    width: screen.width * 0.25,
-    height: screen.height * 0.168
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT
   }
 });
 
@@ -100,24 +103,128 @@ const AVAILABLE_CARDS = [
   require("./assets/playing-cards/king_of_spades.png")
 ];
 
-const Card = ({ onPress, selectedIndices, id, image, matchedPairs }) => {
-  if (selectedIndices.includes(id) || matchedPairs.includes(image)) {
-    return (
-      <TouchableOpacity onPress={onPress} style={styles.card}>
-        <Image source={image} style={styles.cardImage} resizeMode="contain" />
-      </TouchableOpacity>
-    );
+const getCardOffset = index => {
+  switch (index) {
+    case 0:
+      return 1.2;
+    case 2:
+      return -1.2;
+    default:
+      return 0;
   }
-  return (
-    <TouchableOpacity onPress={onPress} style={styles.card}>
+};
+
+class Card extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.offset = new Animated.Value(CARD_WIDTH * getCardOffset(props.index));
+  }
+
+  componentDidMount() {
+    this.timeout = setTimeout(() => {
+      Animated.timing(this.offset, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true
+      }).start();
+    }, 1000);
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.timeout);
+  }
+
+  render() {
+    const { onPress, selectedIndices, id, image, matchedPairs } = this.props;
+    let displayImage = (
       <Image
         source={require("./assets/card-back.png")}
         style={styles.cardImage}
         resizeMode="contain"
       />
-    </TouchableOpacity>
-  );
+    );
+    if (selectedIndices.includes(id) || matchedPairs.includes(image)) {
+      displayImage = (
+        <Image source={image} style={styles.cardImage} resizeMode="contain" />
+      );
+    }
+
+    const offset = {
+      transform: [
+        {
+          translateX: this.offset
+        }
+      ]
+    };
+
+    return (
+      <TouchableOpacity onPress={onPress}>
+        <Animated.View style={[styles.card, offset]}>
+          {displayImage}
+        </Animated.View>
+      </TouchableOpacity>
+    );
+  }
+}
+
+const getRowOffset = index => {
+  switch (index) {
+    case 0:
+      return 1.5;
+    case 1:
+      return 0.5;
+    case 2:
+      return -0.5;
+    case 3:
+      return -1.5;
+    default:
+      return 0;
+  }
 };
+
+class Row extends React.Component {
+  offset = new Animated.Value(CARD_HEIGHT * getRowOffset(this.props.index));
+
+  opacity = new Animated.Value(0);
+
+  componentDidMount() {
+    this.timeout = setInterval(() => {
+      Animated.parallel([
+        Animated.timing(this.offset, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true
+        }),
+        Animated.timing(this.opacity, {
+          toValue: 1,
+          duration: 100,
+          useNativeDriver: true
+        })
+      ]).start();
+    }, 1000);
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.timeout);
+  }
+
+  render() {
+    const animationStyles = {
+      opacity: this.opacity,
+      transform: [
+        {
+          translateY: this.offset
+        }
+      ]
+    };
+    return (
+      <Animated.View style={[styles.row, animationStyles]}>
+        {this.props.children}
+      </Animated.View>
+    );
+  }
+}
 
 const initialState = {
   selectedIndices: [],
@@ -223,8 +330,8 @@ class App extends React.Component {
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
         <SafeAreaView style={styles.safearea}>
-          {this.state.data.map(row => (
-            <View key={row.name} style={styles.row}>
+          {this.state.data.map((row, rowIndex) => (
+            <Row key={row.name} index={rowIndex}>
               {row.columns.map((card, index) => {
                 const cardId = `${row.name}-${card.image}-${index}`;
 
@@ -236,10 +343,11 @@ class App extends React.Component {
                     selectedIndices={this.state.selectedIndices}
                     matchedPairs={this.state.matchedPairs}
                     image={card.image}
+                    index={index}
                   />
                 );
               })}
-            </View>
+            </Row>
           ))}
         </SafeAreaView>
       </View>
