@@ -5,7 +5,8 @@ import {
   StyleSheet,
   StatusBar,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  Image
 } from "react-native";
 
 import { AVAILABLE_CARDS } from "./data/availableCards";
@@ -45,8 +46,14 @@ const styles = StyleSheet.create({
 
 class Card extends React.Component {
   render() {
-    const { onPress } = this.props;
-    const displayImage = null;
+    const { onPress, image } = this.props;
+    const displayImage = (
+      <Image
+        source={image}
+        style={styles.cardImage}
+        resizeMode="contain"
+      />
+    );
 
     return (
       <TouchableOpacity onPress={onPress}>
@@ -122,7 +129,7 @@ class App extends React.Component {
                 const cardId = `${row.name}-${card.image}-${index}`;
 
                 return (
-                  <Card key={cardId} onPress={() => this.handleCardPress()} />
+                  <Card key={cardId} onPress={() => this.handleCardPress()} image={card.image} />
                 );
               })}
             </Row>
