@@ -7,7 +7,8 @@ import {
   Dimensions,
   TouchableOpacity,
   Image,
-  Alert
+  Alert,
+  Animated
 } from "react-native";
 
 import { AVAILABLE_CARDS } from "./data/availableCards";
@@ -74,9 +75,57 @@ class Card extends React.Component {
   }
 }
 
+const getRowOffset = (index) => {
+  switch(index) {
+    case 0:
+      return 1.5;
+    case 1:
+      return 0.5;
+    case 2:
+      return -0.5;
+    case 3:
+      return -1.5;
+    default:
+      return 0;
+  }
+}
+
 class Row extends React.Component {
+  offset = new Animated.Value(CARD_HEIGHT * getRowOffset(this.props.index));
+
+  opacity = new Animated.Value(0);
+
+  componentDidMount() {
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(this.offset, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true
+        }),
+        Animated.timing(this.opacity, {
+          toValue: 1,
+          duration: 100,
+          useNativeDriver: true
+        })
+      ]).start();
+    }, 1000);
+  }
+
   render() {
-    return <View style={styles.row}>{this.props.children}</View>;
+    const animationStyles = {
+      opacity: this.opacity,
+      transform: [
+        {
+          translateY: this.offset
+        }
+      ]
+    };
+    return (
+      <Animated.View style={[styles.row, animationStyles]}>
+        {this.props.children}
+      </Animated.View>
+    );
   }
 }
 
