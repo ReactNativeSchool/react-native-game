@@ -14,8 +14,8 @@ import {
 import { AVAILABLE_CARDS } from "./data/availableCards";
 
 const screen = Dimensions.get("window");
-const CARD_WIDTH = screen.width * 0.25;
-const CARD_HEIGHT = screen.height * 0.168;
+const CARD_WIDTH = Math.floor(screen.width * 0.25);
+const CARD_HEIGHT = Math.floor(CARD_WIDTH * (323 / 222));
 
 const styles = StyleSheet.create({
   container: {
