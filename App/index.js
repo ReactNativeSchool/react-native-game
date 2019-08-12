@@ -128,12 +128,22 @@ class App extends React.Component {
   };
 
   handleCardPress = (cardId) => {
-    this.setState(state => {
+    let callWithUserParams = false;
+    this.setState(({ selectedIndices }) => {
       const nextState = {};
 
-      nextState.selectedIndices = [...state.selectedIndices, cardId];
+      if (selectedIndices.length > 1) {
+        callWithUserParams = true;
+        return { selectedIndices: [] };
+      }
+
+      nextState.selectedIndices = [...selectedIndices, cardId];
 
       return nextState;
+    }, () => {
+      if (callWithUserParams) {
+        this.handleCardPress(cardId);
+      }
     });
   };
 
