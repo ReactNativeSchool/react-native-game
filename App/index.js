@@ -46,14 +46,24 @@ const styles = StyleSheet.create({
 
 class Card extends React.Component {
   render() {
-    const { onPress, image } = this.props;
-    const displayImage = (
+    const { onPress, image, isVisible } = this.props;
+    let displayImage = (
       <Image
         source={image}
         style={styles.cardImage}
         resizeMode="contain"
       />
     );
+
+    if (!isVisible) {
+      displayImage = (
+        <Image
+          source={require('./assets/card-back.png')}
+          style={styles.cardImage}
+          resizeMode="contain"
+        />
+      )
+    }
 
     return (
       <TouchableOpacity onPress={onPress}>
@@ -129,7 +139,7 @@ class App extends React.Component {
                 const cardId = `${row.name}-${card.image}-${index}`;
 
                 return (
-                  <Card key={cardId} onPress={() => this.handleCardPress()} image={card.image} />
+                  <Card key={cardId} onPress={() => this.handleCardPress()} image={card.image} isVisible={index < 1} />
                 );
               })}
             </Row>
