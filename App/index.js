@@ -6,7 +6,8 @@ import {
   StatusBar,
   Dimensions,
   TouchableOpacity,
-  Image
+  Image,
+  Alert
 } from "react-native";
 
 import { AVAILABLE_CARDS } from "./data/availableCards";
@@ -93,6 +94,23 @@ class App extends React.Component {
   componentDidMount() {
     this.draw();
   }
+
+  componentDidUpdate() {
+    if (this.state.matchedPairs.length >= 6) {
+      this.gameComplete();
+    }
+  }
+
+  gameComplete = () => {
+    Alert.alert('Winner!',
+    `You completed the puzzle in ${this.state.moveCount} moves!`,
+    [
+      {
+        text: 'Reset Game',
+        onPress: () => this.setState({ ...initialState }, () => this.draw())
+      }
+    ])
+  };
 
   draw = () => {
     const possibleCards = [...AVAILABLE_CARDS];
