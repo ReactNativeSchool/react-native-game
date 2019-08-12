@@ -83,6 +83,8 @@ const initialState = {
   data: [],
   moveCount: 0,
   selectedIndices: [],
+  currentImage: null,
+  matchedPairs: [],
 };
 
 class App extends React.Component {
@@ -127,9 +129,9 @@ class App extends React.Component {
     this.setState({ data });
   };
 
-  handleCardPress = (cardId) => {
+  handleCardPress = (cardId, image) => {
     let callWithUserParams = false;
-    this.setState(({ selectedIndices }) => {
+    this.setState(({ selectedIndices, currentImage, matchedPairs, moveCount }) => {
       const nextState = {};
 
       if (selectedIndices.length > 1) {
@@ -137,12 +139,23 @@ class App extends React.Component {
         return { selectedIndices: [] };
       }
 
+
+      nextState.moveCount = moveCount + 1;
+      if (selectedIndices.length === 1) {
+        if (image === currentImage && !selectedIndices.includes(cardId)) {
+          nextState.currentImage = null;
+          nextState.matchedPairs = [...matchedPairs, image];
+        }
+      } else {
+        nextState.currentImage = image;
+      }
+
       nextState.selectedIndices = [...selectedIndices, cardId];
 
       return nextState;
     }, () => {
       if (callWithUserParams) {
-        this.handleCardPress(cardId);
+        this.handleCardPress(cardId, image);
       }
     });
   };
@@ -160,9 +173,9 @@ class App extends React.Component {
                 return (
                   <Card
                     key={cardId}
-                    onPress={() => this.handleCardPress(cardId)}
+                    onPress={() => this.handleCardPress(cardId, card.image)}
                     image={card.image}
-                    isVisible={this.state.selectedIndices.includes(cardId)}
+                    isVisible={this.state.selectedIndices.includes(cardId) || this.state.matchedPairs.includes(card.image)}
                   />
                 );
               })}
