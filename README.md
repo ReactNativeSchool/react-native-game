@@ -9,6 +9,8 @@ A simple cross platform (iOS and Android) React Native game. This example was pu
 - `git clone https://github.com/ReactNativeSchool/react-native-review-app.git`
 - `yarn install`/`npm install`
 
+*Note: The `finished` branch contains the final code of the game. So, `git checkout finished` would help you retrieve the final code.*
+
 ### Running
 
 - `yarn run ios`/`npm run ios` or `yarn run android`/`npm run android`
