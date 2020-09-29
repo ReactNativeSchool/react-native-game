@@ -6,7 +6,7 @@ A simple cross platform (iOS and Android) React Native game. This example was pu
 
 ### Installation
 
-- `git clone https://github.com/ReactNativeSchool/react-native-review-app.git`
+- `git clone https://github.com/ReactNativeSchool/react-native-game.git`
 - `yarn install`/`npm install`
 
 ### Running
